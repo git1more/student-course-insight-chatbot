@@ -1,0 +1,44 @@
+version: '3.9'
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: insight_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: insight
+      POSTGRES_PASSWORD: insight_pass
+      POSTGRES_DB: insight_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: insight_backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://insight:insight_pass@db:5432/insight_db
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./backend:/app
+      - ./CommentsData06032026a.xlsx:/app/CommentsData06032026a.xlsx
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build: ./frontend
+    container_name: insight_frontend
+    restart: unless-stopped
+    ports:
+      - '5173:80'
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
