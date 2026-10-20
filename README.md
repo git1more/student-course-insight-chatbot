@@ -3,7 +3,7 @@
 Ask a question in plain English about 3,952 anonymised student course reviews, and get a
 structured six-part report in which **every claim carries the comment IDs it was built from**.
 
-[![tests](https://img.shields.io/badge/tests-111%20passing-brightgreen)]()
+[![tests](https://img.shields.io/badge/tests-120%20passing-brightgreen)]()
 [![python](https://img.shields.io/badge/python-3.12-blue)]()
 [![react](https://img.shields.io/badge/react-18-61dafb)]()
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -39,7 +39,7 @@ Beyond the query itself, this is a working application rather than a notebook de
 | **Query history** | Per-user log with one-click re-run of any past query |
 | **Admin dashboard** | User management, usage analytics, query logs, manual data ingestion |
 | **Ingestion pipeline** | Excel → PostgreSQL, batched embedding with retry; runs automatically on first boot |
-| **Tests** | 111 tests — 96 backend (pytest) + 15 frontend (Vitest), all mocked, no API key or database required |
+| **Tests** | 120 tests — 96 backend (pytest) + 24 frontend (Vitest), all mocked, no API key or database required |
 
 ---
 
