@@ -22,8 +22,17 @@ class Settings(BaseSettings):
     database_url: str = 'postgresql://insight:insight_pass@localhost:5432/insight_db'
     openai_api_key: str = ''
 
+    # Optional overrides for any OpenAI-compatible provider.
+    # Leave blank to use api.openai.com. The chat and embedding endpoints can
+    # point at different providers (e.g. a free chat model + a cheap embedding model).
+    llm_api_key: str = ''
+    llm_base_url: str = ''
+    embedding_api_key: str = ''
+    embedding_base_url: str = ''
+
     embedding_model: str = 'text-embedding-3-small'
     embedding_dimensions: int = 1536
+    embedding_batch_size: int = 200
     chat_model: str = 'gpt-4o-mini'
 
 

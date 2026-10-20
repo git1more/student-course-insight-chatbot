@@ -15,7 +15,7 @@ export default function Layout({ children }) {
       <header className="topbar">
         <div>
           <h1>Student Course Insight Chatbot</h1>
-          <p className="muted">Final Demo — RAG + GPT-4o-mini</p>
+          <p className="muted">Final Demo — RAG + LLM (OpenAI-compatible)</p>
         </div>
         {isAuthenticated && (
           <div className="topbar-right">

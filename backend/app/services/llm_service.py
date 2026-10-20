@@ -69,7 +69,10 @@ class LLMService:
     @property
     def client(self) -> OpenAI:
         if self._client is None:
-            self._client = OpenAI(api_key=settings.openai_api_key)
+            self._client = OpenAI(
+                api_key=settings.llm_api_key or settings.openai_api_key,
+                base_url=settings.llm_base_url or None,
+            )
         return self._client
 
     def generate_structured_response(

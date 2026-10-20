@@ -92,7 +92,7 @@ export default function QueryPage() {
         <h2>Program Insight Query</h2>
         <p className="muted">
           Ask a natural-language question about student feedback and receive a structured,
-          evidence-grounded summary powered by semantic search + GPT-4o-mini.
+          evidence-grounded summary powered by semantic search + LLM.
         </p>
 
         <form className="form" onSubmit={handleSubmit}>
@@ -137,7 +137,7 @@ export default function QueryPage() {
         <div className="card">
           <div className="loading-overlay">
             <div className="spinner" />
-            <p>Searching {result ? 'again' : 'comments'} and generating structured response via GPT-4o-mini…</p>
+            <p>Searching {result ? 'again' : 'comments'} and generating structured response via LLM…</p>
           </div>
         </div>
       )}

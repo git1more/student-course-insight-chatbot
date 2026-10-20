@@ -42,7 +42,8 @@ def _run_ingest():
         return
     print('[auto-ingest] Feedback table is empty — starting background ingest…', flush=True)
     result = subprocess.run(
-        [sys.executable, str(script), '--file', str(excel), '--no-drop'],
+        [sys.executable, str(script), '--file', str(excel), '--no-drop',
+         '--batch-size', str(settings.embedding_batch_size)],
         capture_output=False,   # stream output straight to container logs
     )
     if result.returncode == 0:
