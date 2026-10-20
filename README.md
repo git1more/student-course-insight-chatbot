@@ -1,19 +1,45 @@
 # Student Course Insight Chatbot
 
-**Team:** 9900-W16B-ALMOND | **Course:** COMP9900 26T1 | **Final Demo**
+Ask a question in plain English about 3,952 anonymised student course reviews, and get a
+structured six-part report in which **every claim carries the comment IDs it was built from**.
 
-## Project Overview
+[![tests](https://img.shields.io/badge/tests-111%20passing-brightgreen)]()
+[![python](https://img.shields.io/badge/python-3.12-blue)]()
+[![react](https://img.shields.io/badge/react-18-61dafb)]()
+[![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-A web application that helps academic staff explore anonymised student feedback through a natural-language query interface. The system combines semantic retrieval (RAG) and structured LLM-based summarisation to generate evidence-grounded, six-part insight reports from student comments.
+![Demo](docs/demo.gif)
 
-### Key Features
-- Natural-language query over anonymised course feedback
-- Semantic retrieval via OpenAI embeddings + pgvector cosine similarity
-- Structured six-part academic report (GPT-4o-mini)
-- Privacy gate — blocks results when fewer than 10 comments match
-- JWT authentication with role-based access (user / admin)
-- Query history with one-click re-run
-- Admin dashboard: user management, analytics, logs, data ingestion
+<sub>Program/year selection, generation and scrolling are sped up 2×. A real query takes ~5s end to end.</sub>
+
+## What it does
+
+- **Semantic retrieval, not keyword search** — 3,952 reviews embedded with `text-embedding-3-small`,
+  cosine top-k in pgvector, filtered by program × year.
+- **Every claim is traceable** — each report carries the source comment IDs, so a course
+  coordinator can read the raw feedback behind any conclusion.
+- **It refuses when evidence is thin** — a sample-size gate blocks the query *before* any LLM
+  call when fewer than 10 comments match, so a single student can never be identified.
+- **Six-part academic report** — executive summary, ranked themes, evidence excerpts,
+  interpretation, costed recommendations, confidence & caveats — plus suggested follow-ups.
+- **Swappable model backend** — any OpenAI-compatible endpoint works; chat and embeddings can
+  even come from different providers. See [Choosing a model provider](#choosing-a-model-provider).
+
+## The report
+
+![Report](docs/screenshot-report.png)
+
+## Platform features
+
+Beyond the query itself, this is a working application rather than a notebook demo:
+
+| | |
+|---|---|
+| **Authentication** | JWT with role-based access (user / admin), bcrypt password hashing |
+| **Query history** | Per-user log with one-click re-run of any past query |
+| **Admin dashboard** | User management, usage analytics, query logs, manual data ingestion |
+| **Ingestion pipeline** | Excel → PostgreSQL, batched embedding with retry; runs automatically on first boot |
+| **Tests** | 111 tests — 96 backend (pytest) + 15 frontend (Vitest), all mocked, no API key or database required |
 
 ---
 
@@ -41,6 +67,7 @@ A web application that helps academic staff explore anonymised student feedback 
 │   │   └── __tests__/              # Vitest unit tests
 │   └── package.json
 ├── docker-compose.yml              # Three-service deployment (db, backend, frontend)
+├── docs/                           # README assets (demo GIF, screenshots)
 ├── .env.example                    # Environment variable template
 ├── CommentsData06032026a.xlsx      # Source feedback dataset
 └── README.md
@@ -55,7 +82,7 @@ A web application that helps academic staff explore anonymised student feedback 
 | Frontend | React 18, React Router v6, Vite |
 | Backend | FastAPI, SQLAlchemy 2.0, Pydantic v2 |
 | Database | PostgreSQL 16 + pgvector |
-| AI/ML | OpenAI `text-embedding-3-small` (1536-dim), `gpt-4o-mini` |
+| AI/ML | Any OpenAI-compatible endpoint. Verified with OpenAI (`text-embedding-3-small` 1536-dim + `gpt-4o-mini`) and with Alibaba DashScope (`text-embedding-v4` + `qwen-flash`) |
 | Auth | JWT (python-jose), bcrypt (passlib) |
 | Containerisation | Docker Compose |
 | Testing | pytest, pytest-cov (backend); Vitest, React Testing Library (frontend) |
@@ -151,6 +178,33 @@ OPENAI_API_KEY=sk-...your-key-here...
 
 ---
 
+## Choosing a model provider
+
+The app talks to the OpenAI API by default, but every call goes through the `openai` SDK with a
+configurable `base_url`, so **any OpenAI-compatible endpoint works** — and the chat model and the
+embedding model may live at different providers.
+
+```env
+# Leave blank to use api.openai.com
+LLM_BASE_URL=
+CHAT_MODEL=
+EMBEDDING_BASE_URL=
+EMBEDDING_MODEL=
+EMBEDDING_DIMENSIONS=1536
+```
+
+Two rules matter more than the config itself:
+
+1. **`EMBEDDING_DIMENSIONS` must match the vector column.** The schema stores `Vector(1536)`, and
+   the value is passed explicitly to the embeddings call — many providers default to 1024.
+2. **Switching embedding model requires a full re-ingest.** Vectors from two different models are
+   not comparable, even at identical dimensions: retrieval will silently return unrelated evidence
+   rather than fail. Run `docker compose down -v` and let the app re-ingest on boot.
+
+`.env.example` contains three working configurations (OpenAI, Alibaba DashScope/Qwen, local Ollama).
+
+---
+
 ## Testing
 
 ### Backend Tests (pytest)
@@ -220,7 +274,7 @@ Browser (React)
 FastAPI Backend
     ├── /auth/*      → AuthService → UserRepository → PostgreSQL
     ├── /query       → PrivacyGate → RAGService → EmbeddingService → pgvector
-    │                             → LLMService → OpenAI GPT-4o-mini
+    │                             → LLMService → chat model (OpenAI-compatible)
     │                             → QueryLogRepository → PostgreSQL
     ├── /history     → QueryLogRepository → PostgreSQL
     └── /admin/*     → UserRepository / QueryLogRepository / AnalyticsService
